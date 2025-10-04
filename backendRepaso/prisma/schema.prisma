@@ -1,0 +1,57 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Usuario {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  password     String
+  rol          String   
+  prestamos  Prestamo[]
+  historial    Historial[] 
+}
+
+model Libro {
+  id             Int         @id @default(autoincrement())
+  titulo         String      @unique
+  autor          String
+  categoria      String
+  disponible     Boolean      @default(false)
+  prestamos       Prestamo[]
+  historial      Historial[] 
+}
+
+model TokenRevocado {
+  id              Int      @id @default(autoincrement())
+  token           String   @unique
+  createdAt       DateTime @default(now())
+}
+
+model Prestamo {
+  id              Int      @id @default(autoincrement())
+  usuarioId       Int
+  libroId         Int      
+  fechaPrestamo   DateTime @default(now())      // Fecha actual por defecto al crear
+  fechaDevolucion DateTime?                      // Fecha que debe asignarse manualmente
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade, map: "fk_prestamo_usuario")
+  libro   Libro   @relation(fields: [libroId], references: [id], onDelete: Cascade, map: "fk_prestamo_libro")
+}
+
+model Historial {
+  id               Int       @id @default(autoincrement())
+  usuarioId        Int
+  libroId          Int
+  fechaPrestamo    DateTime  @default(now())
+  fechaDevolucion  DateTime?
+  
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  libro   Libro   @relation(fields: [libroId], references: [id])
+  
+  @@index([usuarioId])
+  @@index([libroId])
+}
